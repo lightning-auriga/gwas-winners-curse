@@ -1,0 +1,11 @@
+SUBDIRS = fileinterface
+AM_CPPFLAGS = -I$(srcdir)/fileinterface -I$(srcdir)/fileinterface/include
+bin_PROGRAMS = gwas_winners_curse.out
+gwas_winners_curse_out_SOURCES = gwas_winners_curse/binomial_zero_finding.cc gwas_winners_curse/binomial_zero_finding.h gwas_winners_curse/cargs.cc gwas_winners_curse/cargs.h gwas_winners_curse/main.cc gwas_winners_curse/multinomial.cc gwas_winners_curse/multinomial.h gwas_winners_curse/parameters.cc gwas_winners_curse/parameters.h gwas_winners_curse/utilities.h gwas_winners_curse/variance_weights.h gwas_winners_curse/zero_finding.cc gwas_winners_curse/zero_finding.h
+gwas_winners_curse_out_CXXFLAGS = $(BOOST_CPPFLAGS) -ggdb
+gwas_winners_curse_out_LDADD = fileinterface/lib/libfileinterface.la
+# EXTRA_DIST = examples
+#gwas_winners_cursedir = $(prefix)/@PACKAGE@/examples
+#gwas_winners_curse_DATA = examples/example.sh examples/mi.imputeddataset.config examples/mi.program.config examples/mi.queue.config examples/test.gen examples/test.sample
+dist_doc_DATA = README
+ACLOCAL_AMFLAGS = -I m4
