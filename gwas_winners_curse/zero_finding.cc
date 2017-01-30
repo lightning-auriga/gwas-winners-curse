@@ -27,8 +27,15 @@ double gwas_winners_curse::ci_log_likelihood(double x, void *params) {
   double stderr = p->stderr_debiased;
   double p_cut = p->p_threshold;
   double cut = qnorm(1.0 - p_cut / 2.0);
-  double xlog = log(dnorm((x - beta) / stderr) / (stderr * (pnorm(beta / stderr - cut) + pnorm(-beta / stderr - cut))));
-  double betalog = log(dnorm(0) / (stderr * (pnorm(beta / stderr - cut) + pnorm(-beta / stderr - cut))));
+  double xlog = 0.0;//log(dnorm((x - beta) / stderr) / (stderr * (pnorm(beta / stderr - cut) + pnorm(-beta / stderr - cut))));
+  double betalog = 0.0;//log(dnorm(0) / (stderr * (pnorm(beta / stderr - cut) + pnorm(-beta / stderr - cut))));
+  if (parameters::get_flag("invalid-approximation")) {
+    xlog = log(dnorm((x - beta) / stderr) / (stderr * (pnorm(fabs(beta) / stderr - cut))));
+    betalog = log(dnorm(0) / (stderr * (pnorm(fabs(beta) / stderr - cut))));
+  } else {
+    xlog = log(dnorm((x - beta) / stderr) / (stderr * (pnorm(beta / stderr - cut) + pnorm(-beta / stderr - cut))));
+    betalog = log(dnorm(0) / (stderr * (pnorm(beta / stderr - cut) + pnorm(-beta / stderr - cut))));
+  }
   return xlog - betalog + qchisq(0.95)/2.0;
 }
 
@@ -128,15 +135,21 @@ double gwas_winners_curse::beta_debiasing_function(double beta_debiased_init, vo
   //std::cout << "stderr is " << stderr << std::endl;
   //std::cout << "beta biased is " << beta_biased << std::endl;
   //std::cout << "pcut is " << p_cut << std::endl;
-  double Q = beta_debiased / stderr - qnorm(1.0 - p_cut / 2.0);
-  double R = -beta_debiased / stderr - qnorm(1.0 - p_cut / 2.0);
   //std::cout << "Q is " << Q << std::endl;
   ////////////////////uncomment me if revert
   //return beta_debiased + stderr * dnorm(Q) / pnorm(Q) - beta_biased;
-  return beta_debiased + stderr * (dnorm(Q) - dnorm(R)) / (pnorm(Q) - pnorm(R)) - beta_biased;
+  if (parameters::get_flag("invalid-approximation")) {
+    double J = fabs(beta_debiased) / stderr - qnorm(1.0 - p_cut / 2.0);
+    return beta_debiased + stderr * dnorm(J) / pnorm(J) - beta_biased;
+  } else {
+    double Q = beta_debiased / stderr - qnorm(1.0 - p_cut / 2.0);
+    double R = -beta_debiased / stderr - qnorm(1.0 - p_cut / 2.0);
+    return beta_debiased + stderr * (dnorm(Q) - dnorm(R)) / (pnorm(Q) + pnorm(R)) - beta_biased;
+  }
 }
 
 double gwas_winners_curse::beta_debiasing_derivative(double beta_debiased_init, void *params) {
+  throw std::domain_error("DO NOT USE THE DEBIASING DERIVATIVE");
   struct beta_debiasing_params *p = reinterpret_cast<beta_debiasing_params *>(params);
   double beta_debiased = (beta_debiased_init < 1e-16 && beta_debiased_init > -1e-16) ? 1e-16 : beta_debiased_init;
   double f = p->frequency;
@@ -179,6 +192,7 @@ double gwas_winners_curse::beta_debiasing_derivative(double beta_debiased_init, 
 }
 
 void gwas_winners_curse::beta_debiasing_bothfunctions(double beta_debiased_init, void *params, double *fxn, double *df) {
+  throw std::domain_error("DO NOT USE THE COMBINED DERIVATIVE FUNCTION");
   struct beta_debiasing_params *p = reinterpret_cast<beta_debiasing_params *>(params);
   double beta_debiased = (beta_debiased_init < 1e-16 && beta_debiased_init > -1e-16) ? 1e-16 : beta_debiased_init;
   double f = p->frequency;
@@ -209,7 +223,7 @@ void gwas_winners_curse::beta_debiasing_bothfunctions(double beta_debiased_init,
   double pnormQ = pnorm(Q);
   double pnormR = pnorm(R);
   //std::cout << "Q is " << Q << std::endl;
-  *fxn = beta_debiased + stderr * (dnormQ - dnormR) / (pnormQ - pnormR) - beta_biased;
+  *fxn = beta_debiased + stderr * (dnormQ - dnormR) / (pnormQ + pnormR) - beta_biased;
 
   //then its derivative
   //double spartial = beta_debiased / (stderr * (N - 1.0));

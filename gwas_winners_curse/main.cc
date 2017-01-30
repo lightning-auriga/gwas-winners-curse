@@ -311,6 +311,8 @@ int main(int argc, char **argv) {
       strm_repair >> catcher >> catcher >> catcher >> catcher;
       o << ' ' << catcher;
       o << ' ' << beta_mse << ' ' << stderr_not_deriv.first << ' ' << ci_mse.first << ' ' << ci_mse.second << ' ' << linecount << ' ' << p_thresh;
+      while (strm_repair >> catcher)
+	o << ' ' << catcher;
       output->writeline(o.str());
     }
 

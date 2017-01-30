@@ -30,6 +30,7 @@ void gwas_winners_curse::cargs::parse_args(bool warn_unused) throw (std::domain_
   set_flag("estimate-stderr", "es", "Just compute stderr from first four entries of file", false);
   set_flag("input-has-header", "ihh", "Whether input file has skippable header", false);
   set_flag("invariant-standard-error", "ise", "Whether to fix the standard error at the discovery estimate", false);
+  set_flag("invalid-approximation", "ia", "Do not use", false);
   //set_flag("use-derivative", "ud", "Use derivative for beta zero finding", false);
   
   set_parameter("input-file",
