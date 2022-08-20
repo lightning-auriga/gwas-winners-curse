@@ -25,7 +25,7 @@ correct.winners.curse <- function(input.file,
                                   trait.mean = 0,
                                   discovery.threshold = 5e-8,
                                   header = TRUE,
-                                  sep = sep) {
+                                  sep = "\t") {
   stopifnot(length(input.file) == 1)
   stopifnot(is.character(input.file))
   stopifnot(file.exists(input.file))
