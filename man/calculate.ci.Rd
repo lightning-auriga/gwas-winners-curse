@@ -11,10 +11,11 @@ calculate.ci(beta.debiased, stderr.debiased, p.thresh)
 \item{beta.debiased}{Numeric parameter estimate.}
 
 \item{stderr.debiased}{Numeric standard error of the mean.}
+
+\item{p.thresh}{Numeric p-value boundary for signed Z statistic.}
 }
 \value{
-Numeric vector, first entry lower 95\% confidence bound,
-second entry upper 95\% confidence bound.
+Numeric vector corresponding to provided p-value boundary.
 }
 \description{
 This just computes the 95\% confidence interval. The original implementation
