@@ -34,6 +34,7 @@ compute.beta.mse <- function(biased.beta,
 #' @param biased.beta Numeric input regression coefficient from discovery.
 #' @param biased.se Numeric input coefficient standard error from discovery.
 #' @param existing.ci Numeric MLE adjusted confidence interval.
+#' @param p.thresh Numeric p-value boundary for signed Z statistic.
 #' @return Numeric weighted average confidence interval reflecting MSE adjustment.
 compute.ci.mse <- function(biased.beta,
                            biased.se,

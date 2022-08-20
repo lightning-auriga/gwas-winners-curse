@@ -32,9 +32,6 @@ each row of the input data file.}
 has a header.}
 
 \item{sep}{Character vector indicating delimiter in input data.}
-
-\item{regression.type}{Character vector name of regression
-type used to generate association data.}
 }
 \description{
 TBD
