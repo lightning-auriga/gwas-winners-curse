@@ -7,8 +7,6 @@
 #' @param input.file Character vector name of input data file.
 #' @param output.file Character vector name of output file
 #' to which results should be reported.
-#' @param regression.type Character vector name of regression
-#' type used to generate association data.
 #' @param trait.mean Numeric mean of trait used for discovery.
 #' If NA, the function will expect mean values to be specified in
 #' each row of the input data file.

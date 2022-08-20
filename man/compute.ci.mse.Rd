@@ -12,6 +12,8 @@ compute.ci.mse(biased.beta, biased.se, existing.ci, p.thresh)
 \item{biased.se}{Numeric input coefficient standard error from discovery.}
 
 \item{existing.ci}{Numeric MLE adjusted confidence interval.}
+
+\item{p.thresh}{Numeric p-value boundary for signed Z statistic.}
 }
 \value{
 Numeric weighted average confidence interval reflecting MSE adjustment.
