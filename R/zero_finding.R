@@ -91,13 +91,6 @@ debias.beta <- function(beta.biased,
                         freq,
                         trait.characteristic,
                         p.threshold.init) {
-  cat("beta.biased: ", beta.biased,
-    ", stderr.biased: ", stderr.biased,
-    ", freq: ", freq,
-    ", trait.characteristic: ", trait.characteristic,
-    ", p.threshold.init: ", p.threshold.init, "\n",
-    sep = ""
-  )
   beta.nosign <- abs(beta.biased)
   p.actual <- 2.0 * (1.0 - pnorm(beta.nosign / stderr.biased))
   p.threshold <- 0
@@ -122,6 +115,5 @@ debias.beta <- function(beta.biased,
     debiasing.func(x, p.threshold, beta.nosign, stderr.biased)
   }
   beta.mle <- uniroot(f.solver, c(x.lo, x.hi))$root * sign(beta.biased)
-  cat("\tbeta.mle: ", beta.mle, "\n", sep = "")
   beta.mle
 }
