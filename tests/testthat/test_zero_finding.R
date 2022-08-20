@@ -33,3 +33,12 @@ test_that("debias.beta can debias a beta", {
   observed <- debias.beta(beta.biased, se.biased, freq, trait.mean, p.thresh)
   expect_true(abs(observed - expected) / expected < 0.01)
 })
+
+test_that("debias.beta reports warning when p-value threshold is nonsensical", {
+  beta.biased <- -0.1191
+  se.biased <- 0.0263
+  freq <- 0.9092
+  trait.mean <- 0
+  p.thresh <- 1e-7
+  expect_warning(debias.beta(beta.biased, se.biased, freq, trait.mean, p.thresh))
+})
