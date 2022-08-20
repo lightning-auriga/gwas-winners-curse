@@ -9,11 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - R package structure
 - roxygen documentation
+- unit tests with [testthat](https://testthat.r-lib.org/)
 
 ### Changed
 
 - function `calculate_ci` uses basic asymptotic normal theory
 - input format is somewhat in flux; will be locked down before release version
+- standard error reestimation is entirely disabled, due to the removal of non-linear GLM.
+  input standard error is now preserved, taking advantage of the fact that, under the linear
+  model, genetic association standard error is independent of regression coefficient
 
 ### Removed
 
