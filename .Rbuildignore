@@ -13,3 +13,4 @@ run_tests.r
 ^lib/.*
 ^doc$
 ^Meta$
+^\.github$
