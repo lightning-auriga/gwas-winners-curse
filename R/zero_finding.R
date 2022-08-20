@@ -45,6 +45,7 @@ calculate.adjusted.trait <- function(trait.characteristic, freq, beta) {
 #' @param beta.biased Numeric input biased regression coefficient.
 #' @param stderr.biased Numeric input (possibly) biased standard error.
 #' @return Numeric optimization function value for beta debiasing routine.
+#' @importFrom stats dnorm pnorm qnorm
 debiasing.func <- function(beta.debiased.init, p.thresh,
                            beta.biased, stderr.biased) {
   ## for linear regression, the standard error is invariant with respect to
@@ -86,6 +87,7 @@ debiasing.func <- function(beta.debiased.init, p.thresh,
 #' @param p.threshold.init Numeric reported p-value threshold used
 #' to bring variants into replication.
 #' @return Numeric maximum likelihood estimate of debiased regression coefficient.
+#' @importFrom stats uniroot
 debias.beta <- function(beta.biased,
                         stderr.biased,
                         freq,

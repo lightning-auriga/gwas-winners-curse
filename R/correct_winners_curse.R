@@ -20,6 +20,7 @@
 #' has a header.
 #' @param sep Character vector indicating delimiter in input data.
 #' @return NULL
+#' @importFrom utils read.table write.table
 #' @export
 correct.winners.curse <- function(input.file,
                                   output.file,
