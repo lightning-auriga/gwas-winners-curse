@@ -2,7 +2,66 @@
 #' Correct Winner's Curse in GWAS association data.
 #'
 #' @description
-#' TBD
+#' This function accepts a file containing summary information
+#' describing the discovery association metrics for a set
+#' of significant GWAS variants. The function will attempt
+#' to adjust those values to correct for the apparent
+#' "Winner's Curse" effect on those estimates, which depends
+#' most notably on the p-value threshold used in discovery
+#' to select variants for replication. Both MLE and MSE
+#' corrections are emitted; generally, MLE has performed better
+#' in testing, but that is not guaranteed to be accurate.
+#'
+#' @details
+#' This function is a reimplementation of the original C++
+#' program that accompanied the paper at
+#' \url{https://doi.org/10.1371/journal.pgen.1006916}. The implementation
+#' is largely improved and streamlined. As a brief summary of changes:
+#'
+#' - obviously, it's an R package now
+#' - linear regression is explicitly the only method supported. that
+#'   isn't actually a change from the original, as the cooked-in
+#'   alternate GLM support was not directly part of the paper
+#' - the input and output formats are slightly changed, which is fine
+#'   because they weren't really document to begin with whoops.
+#'   the formats are as follows:
+#' - Input:
+#'   - beta (discovery)
+#'   - standard error (discovery)
+#'   - sample size (discovery)
+#'   - allele frequency (discovery)
+#'   - phenotype distribution mean in study (optional)
+#'   - p-value threshold to select variant for replication (optional, though
+#'     required if phenotype distribution mean is specified as a column)
+#'   - beta (replication)
+#'   - standard error (replication)
+#'   - sample size (replication)
+#'   - allele frequency (replication)
+#' - Output:
+#'   - The same first columns as input. A header is added or slightly adjusted as needed.
+#'     If no per-row trait mean/p-value threshold was provided in the input, they will be
+#'     appended as per-row values in columns 9 and 10 of the output
+#'   - beta (MLE adjustment for Winner's Curse)
+#'   - 95% CI on beta, lower bound (MLE adjustment for Winner's Curse)
+#'   - 95% CI on beta, upper bound (MLE adjustment for Winner's Curse)
+#'   - beta (MSE adjustment for Winner's Curse)
+#'   - 95% CI on beta, lower bound (MSE adjustment for Winner's Curse)
+#'   - 95% CI on beta, upper bound (MSE adjustment for Winner's Curse)
+#'
+#' - Additional modifications to input and output format are available based
+#'   on formal parameters to the function, as described in the parameter documentation.
+#' - In the original package, standard error of the input regression coefficient was being
+#'   reestimated. This was originally intended in advance of support for non-linear GLM,
+#'   but that support never manifested, and as such, the correction was actually somewhat
+#'   counterproductive, seeing as:
+#'   - there is a simple, fast closed-form solution to standard error
+#'     for additive genetic effect under HWE for linear models (so it just went slow for no reason)
+#'   - any deviation from HWE (which is expected for some significant variants) caused
+#'     the correction to be inaccurate
+#'   - linear model genetic effect standard error is independent of beta (yes, it's true), and
+#'     as such, no correction is actually needed (again, only for linear regression)
+#'   In light of the above, the correction method is wholly removed, and will only be added
+#'   back in if other GLM support is attempted at some later date.
 #'
 #' @param input.file Character vector name of input data file.
 #' @param output.file Character vector name of output file
@@ -25,7 +84,7 @@ correct.winners.curse <- function(input.file,
                                   trait.mean = 0,
                                   discovery.threshold = 5e-8,
                                   header = TRUE,
-                                  sep = sep) {
+                                  sep = "\t") {
   stopifnot(length(input.file) == 1)
   stopifnot(is.character(input.file))
   stopifnot(file.exists(input.file))
