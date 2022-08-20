@@ -39,6 +39,7 @@ correct.winners.curse <- function(input.file,
 
   ## load input data
   data <- read.table(input.file, header = header, sep = sep, stringsAsFactors = FALSE)
+  stopifnot(nrow(data) > 0)
   stopifnot(ncol(data) %in% c(8, 10))
   if (ncol(data) == 10) {
     colnames(data) <- c(
@@ -54,9 +55,8 @@ correct.winners.curse <- function(input.file,
     data$trait.mean <- trait.mean
     data$discovery.threshold <- discovery.threshold
   }
-
   ## debias beta
-  data$debiased.beta <- sapply(seq_len(nrow(data)), function(i) {
+  data$debiased.beta.mle <- sapply(seq_len(nrow(data)), function(i) {
     debias.beta(
       data[i, "discovery.beta"],
       data[i, "discovery.se"],
@@ -66,26 +66,33 @@ correct.winners.curse <- function(input.file,
     )
   })
   ## compute 95% confidence interval around debiased beta
-  data$l95 <- calculate.ci(data[, "debiased.beta"], data[, "discovery.se"], 0.025)
-  data$u95 <- calculate.ci(data[, "debiased.beta"], data[, "discovery.se"], 0.975)
+  data$l95.mle <- calculate.ci(data[, "debiased.beta.mle"], data[, "discovery.se"], 0.025)
+  data$u95.mle <- calculate.ci(data[, "debiased.beta.mle"], data[, "discovery.se"], 0.975)
   ## compute MSE variants of debiased results
   data$debiased.beta.mse <- compute.beta.mse(
     data[, "discovery.beta"],
     data[, "discovery.se"],
-    data[, "debiased.beta"]
+    data[, "debiased.beta.mle"]
   )
   data$l95.mse <- compute.ci.mse(
     data[, "discovery.beta"],
     data[, "discovery.se"],
-    data[, "l95"],
+    data[, "l95.mle"],
     0.025
   )
   data$u95.mse <- compute.ci.mse(
     data[, "discovery.beta"],
     data[, "discovery.se"],
-    data[, "u95"],
+    data[, "u95.mle"],
     0.975
   )
+  ## fix precision in computed variables
+  for (colname in c(
+    "debiased.beta.mle", "l95.mle", "u95.mle",
+    "debiased.beta.mse", "l95.mse", "u95.mse"
+  )) {
+    data[, colname] <- signif(data[, colname], 5)
+  }
   ## emit results
   write.table(data, output.file,
     row.names = FALSE, col.names = TRUE, quote = FALSE,
