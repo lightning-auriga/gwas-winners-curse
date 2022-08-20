@@ -9,13 +9,10 @@
 #'
 #' @param beta.debiased Numeric parameter estimate.
 #' @param stderr.debiased Numeric standard error of the mean.
-#' @return Numeric vector, first entry lower 95% confidence bound,
-#' second entry upper 95% confidence bound.
+#' @param p.thresh Numeric p-value boundary for signed Z statistic.
+#' @return Numeric vector corresponding to provided p-value boundary.
 calculate.ci <- function(beta.debiased, stderr.debiased, p.thresh) {
-  c(
-    beta.debiased + qnorm(0.025) * stderr.debiased,
-    beta.debiased + qnorm(0.975) * stderr.debiased
-  )
+  beta.debiased + qnorm(p.thresh) * stderr.debiased
 }
 
 #' @title
