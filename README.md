@@ -1,5 +1,10 @@
 # gwas.winners.curse: a tool for probabilistic correction of Winner's Curse in two-stage GWAS
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/lightning-auriga/gwas-winners-curse/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/lightning-auriga/gwas-winners-curse/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
+
+
 ## Overview
 
 This is an `R` package designed to adjust GWAS discovery results to correct
