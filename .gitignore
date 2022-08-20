@@ -1,2 +1,6 @@
 node_modules
 package*json
+
+coverage_report.html
+lib/
+run_tests.r
