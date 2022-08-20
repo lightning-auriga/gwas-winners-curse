@@ -1,9 +1,9 @@
 Package: gwas.winners.curse
-Title: What the Package Does (One Line, Title Case)
+Title: probabilistic correction of Winner's Curse in two-stage GWAS
 Version: 2.0.0
 Authors@R: 
     person("Lightning", "Auriga", , "lightning.auriga@gmail.com", role = c("aut", "cre"))
-Description: tool for probabilistic correction of Winner's Curse in two-stage GWAS
+Description: A tool for probabilistic correction of Winner's Curse in two-stage GWAS.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
