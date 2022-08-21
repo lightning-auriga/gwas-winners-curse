@@ -1,6 +1,11 @@
 ---
 title: "An Overview of the Winner's Curse"
-output: rmarkdown::html_vignette
+output:
+  rmarkdown::html_vignette:
+    highlight: pygments
+    toc: true
+    fig_width: 5
+    fig.align: "center"
 vignette: >
   %\VignetteIndexEntry{An Overview of the Winner's Curse}
   %\VignetteEngine{knitr::rmarkdown}
@@ -10,9 +15,12 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  cache = FALSE,
+  dev = "png"
 )
 ```
+
 
 ```{r setup}
 library(gwas.winners.curse)
@@ -123,6 +131,8 @@ with the outcome in truth. The question becomes simply: if we use a p-value
 threshold to select variants to attempt to replicate in such a study,
 what happens to our estimation of the true association based on our discovery data?
 
+### Simulation of Null Variants
+
 ```{r simulate.discovery, echo=TRUE, eval=TRUE}
 n.variants <- 20000
 n.subjects <- 1000
@@ -183,12 +193,13 @@ for (p.threshold in p.thresholds) {
 
 As expected, the resulting effect estimates across _all variants_ are normally distributed about 0:
 
+#### Effect size distribution of unassociated variants
+
 ```{r plot.histogram, echo=FALSE, eval=TRUE, fig.height=5, fig.width=5, units="in", fig.align="center"}
 plot.data <- data.frame(x = estimated.effect)
 my.plot <- ggplot(aes(x = x, y = ..count.. / sum(..count..)), data = plot.data) +
   geom_histogram(bins = 100)
 my.plot <- my.plot + my.theme + xlab("variant effect estimate") + ylab("proportion of variants")
-my.plot <- my.plot + ggtitle("Effect Sizes for Unassociated Variants")
 my.plot
 ```
 
@@ -203,6 +214,8 @@ _what happens to variants with more extreme p-values?_ becomes _what happens to 
 
 In the next plot, we'll consider the average effect of variants stratified by whether the sign of their apparent correlation
 with the outcome is positive or negative. This is just to make the trends apparent, so things don't noisily cancel each other out.
+
+#### Escalating curse in unassociated variants due to thresholding
 
 ```{r plot.discovery.effect, echo=FALSE, eval=TRUE, fig.height=5, fig.width=5, units="in", fig.align="center"}
 plot.data <- data.frame(x = rep(-log10(p.thresholds), each = 2), y = discovery.average.effect)
@@ -221,3 +234,73 @@ Observe the following about the above plot:
 - The apparent curse increases as the p-value threshold for "discovery" increases
 - The _overall_ mean is still noisily symmetric about 0, but the individual estimates become more extreme
 
+### Curse in Associated Variants
+
+The above example considers what happens when a p-value threshold induces a bias in _unassociated_
+variants. But what about variants that actually associate with a phenotype?
+
+If the above example involved truncation of a normal effect size distribution about 0, we can think
+of associated variants as sampling from many different distributions about nonzero means.
+
+We're going to play a little fast and loose here with the specifics. Just to be clear:
+- we're comparing effect size distributions; this should really be _test statistics_, but since we're in
+  linear regression mode, those are about the same thing; but for consistency,
+- let's assume the variants have the same minor allele frequency;
+- these effect sizes are absurdly large for most complex trait GWAS. it's just for schematic purposes
+- we're considering two variants sampled repeatedly with a fixed true nonzero effect size (the mean of each
+  normal). in reality, there may be many such distributions, all overlapping, and instead of resampling the same
+  variant, you're sampling lots of variants with slightly different effects.
+- we'll assume the genetic model in effect is additive, and as such direction of effect is interchangeable,
+  so we'll just consider positive correlation between genetics and phenotype.
+
+#### Differential effect of thresholding on different variants
+
+```{r plot.associated.truncation, echo=FALSE, eval=TRUE, fig.height=5, fig.width=5, units="in", fig.align="center"}
+plot.data <- data.frame(
+  x = c(
+    rnorm(1000, 0.5, 0.1),
+    rnorm(1000, 0.1, 0.1)
+  ),
+  y = factor(rep(c("mean = 0.5", "mean = 0.1"), each = 1000))
+)
+my.plot <- ggplot(aes(x = x, fill = y), data = plot.data)
+my.plot <- my.plot + my.theme + geom_histogram(alpha = 0.5, position = "identity", bins = 50)
+my.plot <- my.plot + xlab("variant sampled effect size")
+my.plot <- my.plot + scale_fill_manual(name = "", values = RColorBrewer::brewer.pal(4, "Dark2")[1:2])
+my.plot <- my.plot + geom_vline(xintercept = 0.3)
+my.plot
+```
+
+Consider the above distributions. What happens if we use the cutoff schematically drawn in the above plot,
+such that variants with larger effect are considered "discovered" and those with smaller are rejected?
+As you can see, the effect differs in severity between the two distributions. For the variant distribution
+with mean about 0.5, we lose a fraction of the lower tail of the sampling distribution. Due to this loss,
+we should expect the discovered variants from that distribution to slightly overestimate the true
+effect: their residual mean is about 0.5051. They have a small magnitude curse.
+
+However, consider the variant with true effect of 0.1. Under this model, the variant really is associated;
+but this threshold causes only the very end of the high tail to pass discovery. The mean of remaining
+variants after thresholding is nearly 0.34, which is a gigantic bias relative to the true mean.
+
+One of the strange observations of the Winner's Curse in GWAS is that the strength of the curse depends
+on how close to the p-value threshold a variant is. Variants that just barely attain the threshold p-value,
+due to effect size or power or whatever reason, suffer a much larger curse, as they are much more likely
+to have their distributions substantially truncated by the threshold. Variants that exceed the threshold by many
+orders of magnitude, on the other hand, are approximately unaffected. There is even a possibility that an
+analyst can control the magnitude of the Winner's Curse by adjusting the discovery threshold. However,
+this is generally inadvisable:
+
+- In many cases, the individual threshold is mostly irrelevant, and you'll be cursed regardless.
+- Reducing the curse will ultimately involve decreasing your specificity or decreasing your sensitivity.
+  The evaluation of sensitivity and specificity is important, but this is not the primary guiding reason.
+- Association results are subject to more biases than just the Winner's Curse. Most notably, a human
+  being will tend to select a threshold in a list that makes it look most favorable to their desired outcome.
+  This kind of bias is much more pernicious than the Winner's Curse. A threshold should always be chosen
+  _a priori_ based on the number of tests conducted in an analysis, and not adjusted based on wanting different
+  variants to make it through.
+
+## How Does This Impact Replication?
+
+This Winner's Curse phenomenon, when not adjusted for, can have significant repercussions on the apparent ability of
+a genetic association study to replicate in an independent sample. For that discussion, please
+see [the vignette concerning study replication](assess-replication-in-study.html).
