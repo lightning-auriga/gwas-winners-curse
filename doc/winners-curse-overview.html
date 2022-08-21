@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>An Overview of the Winner’s Curse</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">An Overview of the Winner’s Curse</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gwas.winners.curse)</span></code></pre></div>
+<div id="overview" class="section level2">
+<h2>Overview</h2>
+<p>This vignette aims to provide a clear introduction to the concept of
+the Winner’s Curse, and how it manifests in genome-wide association
+studies (GWAS). The hope is that the reader will leave this document
+with a better understanding of the challenges of replication in GWAS and
+some of the pitfalls of relying heavily on p-value rankings of
+variants.</p>
+<p>Note that while these examples will focus on GWAS, the Winner’s Curse
+is a phenomenon present in many different contexts (notably the theory
+surrounding group behavior in auctions). It’s really interesting to read
+about <a href="https://en.wikipedia.org/wiki/Winner%27s_curse">if you’re
+curious</a>. I’ll mention that if we’re being really didactic here,
+people sometimes tend to prefer the term <a href="https://en.wikipedia.org/wiki/Regression_toward_the_mean">regression
+toward the mean</a> as the description of the GWAS phenomenon. In fact,
+regression toward the mean was first characterized in the observation of
+generational change of human height. Though Galton was not necessarily
+thinking about GWAS with that observation, it is interesting to reflect
+on how this phenomenon is pervasive in genetics applications.</p>
+</div>
+<div id="what-is-the-winners-curse" class="section level2">
+<h2>What is the Winner’s Curse?</h2>
+<p>The Winner’s Curse is as follows: a process that involves multiple
+estimations of an underlying value, such that the winner of the process
+is selected by the highest (or set of highest) estimations of the
+underlying value, will tend to select respondents that overestimate the
+underlying value. Furthermore, how much those respondents outperform
+their expectation depends on how challenging it is to win. The standard
+example of the Winner’s Curse is as follows:</p>
+<ul>
+<li>In an auction, multiple bidders compete to win the honor of paying
+for an item. The item’s underlying value is fixed, but each bidder
+separately makes some sort of estimate of the item’s value. Eventually,
+the winner is selected by choosing the person who offered the highest
+bid. If there’s very little competition for an item, the final bid may
+be reasonable relative to the item’s fair value. However, if there is a
+great deal of competition for the item, the final bid will likely exceed
+the fair value. The winner is ultimately selected based on who
+overestimated the price of the item.</li>
+</ul>
+<p>A related phenomenon is <em>regression toward the mean</em>. This
+term describes what happens when a process that has recently observed an
+extreme value is observed again. By random chance, it is possible that
+an even more extreme value will be observed; but in most situations, the
+following value will tend toward the average underlying value of the
+system. As an example:</p>
+<ul>
+<li>In sports, a new player appears in the public eye. The prominence of
+the player is in part determined by how well they perform in their first
+season. Everyone gets very excited by this no doubt. The following
+season, the player is not as successful. This process has its own term,
+the <em>sophomore slump</em>.</li>
+</ul>
+</div>
+<div id="what-does-this-have-to-do-with-gwas" class="section level2">
+<h2>What does this have to do with GWAS?</h2>
+<p>Genome-wide association studies, or GWAS, are correlative scans of
+genetic variation against a trait of interest, looking for hypothesized
+association that may indicate genetic causation. These are most commonly
+represented in regression models: <span class="math display">\[y \sim
+x_0 + \beta x_1\]</span> where <span class="math inline">\(y\)</span> is
+a subject’s phenotypic observation (e.g. height, disease status, RNA
+expression level), and <span class="math inline">\(x_1\)</span> is some
+representation of the subject’s genetic state for a particular locus in
+the genome. In this model, <span class="math inline">\(\beta\)</span> is
+the estimated <em>genetic effect</em> of the locus on the outcome.</p>
+<p>GWAS typically test millions of sites in the genome independently. It
+is standard in GWAS to observe that most sites in the genome have no
+significant correlation (commonly referred to as <em>association</em>)
+with any outcome. Due to the extreme multiple testing burden incurred by
+GWAS, frequentist tests for association require a stringent multiple
+testing adjustment to filter out the exceptionally large number of false
+positives. The default threshold used in many studies is so-called
+<em>genome-wide significance</em> based on Bonferroni adjustment of
+nominal <span class="math inline">\(p = 0.05\)</span> for <span class="math inline">\(10^6\)</span> tests: <span class="math inline">\(5*10^{-8}\)</span>.</p>
+<p>In an adequately-powered association study, assuming there is
+actually some genetic heritability behind the measured trait, some
+number of genetic variants will be associated with the outcome at
+genome-wide significance. Most prominent GWAS take this set of
+<em>discovery</em> variants and attempt to assess them in a
+<em>replication</em> study: a set of independent subjects for whom the
+same genetic and phenotypic information has been collected.</p>
+<p>The question becomes: how often should a discovery variant
+successfully replicate? In practice, many discovery variants fail to
+replicate, even when using very stringent multiple testing correction in
+discovery. One of the reasons for this failure to replicate is the
+Winner’s Curse, or regression toward the mean. Variants are effectively
+competing to be brought forward into replication, and the competition is
+won by any variant that happens to exceed genome-wide significance.</p>
+</div>
+<div id="observing-the-winners-curse-in-genetic-association" class="section level2">
+<h2>Observing the Winner’s Curse in Genetic Association</h2>
+<p>We can pretty easily simulate the Winner’s Curse in a toy example.
+Imagine a situation in which we test association between many variants
+in turn and an outcome. For simplicity, assume none of the variants are
+associated with the outcome in truth. The question becomes simply: if we
+use a p-value threshold to select variants to attempt to replicate in
+such a study, what happens to our estimation of the true association
+based on our discovery data?</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>n.variants <span class="ot">&lt;-</span> <span class="dv">20000</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>n.subjects <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="do">## assume for simplicity that all variants have the</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="do">## same allele frequency, and are biallelic</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>allele.frequency <span class="ot">&lt;-</span> <span class="fl">0.25</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="do">## assume Hardy-Weinberg equilibrium</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>p.homozygous.reference <span class="ot">&lt;-</span> allele.frequency<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>p.heterozygous <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> allele.frequency <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> allele.frequency)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>p.homozygous.alternate <span class="ot">&lt;-</span> (<span class="dv">1</span> <span class="sc">-</span> allele.frequency)<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>probs <span class="ot">&lt;-</span> <span class="fu">c</span>(p.homozygous.reference,</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>           p.heterozygous,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>           p.homozygous.alternate)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="do">## simulate some variants</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>genetic.data <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">as.integer</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">2</span>), n.variants<span class="sc">*</span>n.subjects, <span class="at">replace=</span><span class="cn">TRUE</span>, <span class="at">prob=</span>probs)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="do">## simulate a fixed outcome</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>phenotypic.data <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n.subjects)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="do">## test association between variant and phenotype</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>estimated.effect <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>estimated.p <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(n.variants)) {</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    genotypes <span class="ot">&lt;-</span> genetic.data[<span class="fu">seq</span>((i <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> n.subjects <span class="sc">+</span> <span class="dv">1</span>, i <span class="sc">*</span> n.subjects)]</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    model.fit <span class="ot">&lt;-</span> <span class="fu">summary</span>(<span class="fu">lm</span>(phenotypic.data <span class="sc">~</span> genotypes))</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    estimated.effect <span class="ot">&lt;-</span> <span class="fu">c</span>(estimated.effect, model.fit<span class="sc">$</span>coeff[<span class="dv">2</span>, <span class="dv">1</span>])</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    estimated.p <span class="ot">&lt;-</span> <span class="fu">c</span>(estimated.p, model.fit<span class="sc">$</span>coeff[<span class="dv">2</span>, <span class="dv">4</span>])</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="do">## now, consider varying levels of stringency in</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="do">## declaring a variant &quot;discovered&quot;</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>p.thresholds <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="fl">0.75</span>, <span class="fl">0.5</span>, <span class="fl">0.25</span>, <span class="fl">0.1</span>,</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>                  <span class="fl">0.075</span>, <span class="fl">0.05</span>, <span class="fl">0.025</span>, <span class="fl">0.01</span>,</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>                  <span class="fl">0.0075</span>, <span class="fl">0.005</span>, <span class="fl">0.0025</span>, <span class="fl">0.001</span>,</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>                  <span class="fl">0.00075</span>, <span class="fl">0.0005</span>)</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>discovery.average.effect <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (p.threshold <span class="cf">in</span> p.thresholds) {</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>    discovery.effects <span class="ot">&lt;-</span> estimated.effect[estimated.p <span class="sc">&lt;=</span> p.threshold]</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>    discovery.positive.effects <span class="ot">&lt;-</span> discovery.effects[discovery.effects <span class="sc">&gt;=</span> <span class="dv">0</span>]</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    discovery.negative.effects <span class="ot">&lt;-</span> discovery.effects[discovery.effects <span class="sc">&lt;</span> <span class="dv">0</span>]</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>    discovery.average.effect <span class="ot">&lt;-</span> <span class="fu">c</span>(discovery.average.effect,</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>                                  <span class="fu">ifelse</span>(<span class="fu">length</span>(discovery.positive.effects) <span class="sc">==</span> <span class="dv">0</span>,</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>                                         <span class="cn">NA</span>,</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>                                         <span class="fu">mean</span>(discovery.positive.effects)))</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>    discovery.average.effect <span class="ot">&lt;-</span> <span class="fu">c</span>(discovery.average.effect,</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>                                  <span class="fu">ifelse</span>(<span class="fu">length</span>(discovery.negative.effects) <span class="sc">==</span> <span class="dv">0</span>,</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>                                         <span class="cn">NA</span>,</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>                                         <span class="fu">mean</span>(discovery.negative.effects)))</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>As expected, the resulting effect estimates across <em>all
+variants</em> are normally distributed about 0:</p>
+<p><img src="data:image/png;base64,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" style="display: block; margin: auto;" /></p>
+<p>However, what happens when we only consider variants that surpass
+some more stringent p-value threshold? It is a somewhat complicated
+question. However, we’re in linear regression, so one thing is easier:
+with linear regression and assuming <a href="https://en.wikipedia.org/wiki/Hardy%E2%80%93Weinberg_principle">Hardy
+Weinberg equilibrium</a>, the standard error of a regression coefficient
+is actually known to be <span class="math display">\[\frac{1}{\sqrt{2 *
+N * f * (1 - f)}}\]</span> where <span class="math inline">\(N\)</span>
+is the sample size and <span class="math inline">\(f\)</span> is the
+biallelic allele frequency. Why point this out? Because the standard
+error is not actually dependent on the regression coefficient at all.
+This somewhat unintuitive observation means that the question <em>what
+happens to variants with more extreme p-values?</em> becomes <em>what
+happens to variants with more extreme regression coefficients?</em>
+(bearing in mind that bigger coefficients mean bigger test statistics
+mean smaller p-values).</p>
+<p>In the next plot, we’ll consider the average effect of variants
+stratified by whether the sign of their apparent correlation with the
+outcome is positive or negative. This is just to make the trends
+apparent, so things don’t noisily cancel each other out.</p>
+<p><img src="data:image/png;base64,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" style="display: block; margin: auto;" /></p>
+<p>Observe the following about the above plot:</p>
+<ul>
+<li>Recall that every single variant in the simulation is uncorrelated
+with the outcome</li>
+<li>The mean effect of variants passing the least stringent threshold is
+the least biased (nonzero)</li>
+<li>The apparent curse increases as the p-value threshold for
+“discovery” increases</li>
+<li>The <em>overall</em> mean is still noisily symmetric about 0, but
+the individual estimates become more extreme</li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

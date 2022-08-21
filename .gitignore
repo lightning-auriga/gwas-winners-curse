@@ -4,3 +4,6 @@ package*json
 coverage_report.html
 lib/
 run_tests.r
+inst/doc
+/doc/
+/Meta/

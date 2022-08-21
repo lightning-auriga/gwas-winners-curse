@@ -1,0 +1,223 @@
+---
+title: "An Overview of the Winner's Curse"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{An Overview of the Winner's Curse}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(gwas.winners.curse)
+```
+
+```{r other.setup, echo=FALSE, eval=TRUE}
+library(ggplot2, quietly = TRUE)
+library(RColorBrewer, quietly = TRUE)
+```
+
+```{r set.theme, echo=FALSE, eval=TRUE}
+my.theme <- theme_light() + theme(
+  plot.title = element_text(size = 16, hjust = 0.5),
+  axis.title = element_text(size = 14),
+  axis.text = element_text(size = 12)
+)
+```
+
+## Overview
+
+This vignette aims to provide a clear introduction to the concept of the Winner's
+Curse, and how it manifests in genome-wide association studies (GWAS). The hope is
+that the reader will leave this document with a better understanding of the challenges
+of replication in GWAS and some of the pitfalls of relying heavily on p-value rankings
+of variants.
+
+Note that while these examples will focus on GWAS, the Winner's Curse
+is a phenomenon present in many different contexts (notably the theory
+surrounding group behavior in auctions). It's really interesting to
+read about [if you're curious](https://en.wikipedia.org/wiki/Winner%27s_curse).  I'll
+mention that if we're being really didactic here, people sometimes
+tend to prefer the term [regression toward the mean](https://en.wikipedia.org/wiki/Regression_toward_the_mean) as the
+description of the GWAS phenomenon. In fact, regression toward the
+mean was first characterized in the observation of generational change
+of human height. Though Galton was not necessarily thinking about GWAS
+with that observation, it is interesting to reflect on how this phenomenon
+is pervasive in genetics applications.
+
+## What is the Winner's Curse?
+
+The Winner's Curse is as follows: a process that involves multiple estimations of
+an underlying value, such that the winner of the process is selected by the
+highest (or set of highest) estimations of the underlying value, will tend to 
+select respondents that overestimate the underlying value.
+Furthermore, how much those respondents outperform their expectation depends on
+how challenging it is to win. The standard example of the Winner's Curse is as follows:
+
+- In an auction, multiple bidders compete to win the honor of paying for an item.
+  The item's underlying value is fixed, but each bidder separately makes some 
+  sort of estimate of the item's value. Eventually, the winner is selected by 
+  choosing the person who offered the highest bid. If there's very little 
+  competition for an item, the final bid may be reasonable relative to the 
+  item's fair value. However, if there is a great deal of competition for the 
+  item, the final bid will likely exceed the fair value. The winner 
+  is ultimately selected based on who overestimated the price of the item.
+
+A related phenomenon is _regression toward the mean_. This term describes
+what happens when a process that has recently observed an extreme value
+is observed again. By random chance, it is possible that an even more
+extreme value will be observed; but in most situations, the following value
+will tend toward the average underlying value of the system. As an example:
+
+- In sports, a new player appears in the public eye. The prominence of the player
+  is in part determined by how well they perform in their first season. Everyone
+  gets very excited by this no doubt. The following season, the player is not
+  as successful. This process has its own term, the _sophomore slump_.
+
+## What does this have to do with GWAS?
+
+Genome-wide association studies, or GWAS, are correlative scans of genetic
+variation against a trait of interest, looking for hypothesized association
+that may indicate genetic causation. These are most commonly represented
+in regression models: $$y \sim x_0 + \beta x_1$$ where $y$ is a subject's
+phenotypic observation (e.g. height, disease status, RNA expression level),
+and $x_1$ is some representation of the subject's genetic state for a particular
+locus in the genome. In this model, $\beta$ is the estimated _genetic effect_
+of the locus on the outcome.
+
+GWAS typically test millions of sites in the genome independently.
+It is standard in GWAS to observe that most sites in the genome have no significant
+correlation (commonly referred to as _association_) with any outcome.
+Due to the extreme multiple testing burden incurred by GWAS, frequentist tests
+for association require a stringent multiple testing adjustment to filter out
+the exceptionally large number of false positives. The default threshold used
+in many studies is so-called _genome-wide significance_ based on Bonferroni
+adjustment of nominal $p = 0.05$ for $10^6$ tests: $5*10^{-8}$.
+
+In an adequately-powered association study, assuming there is actually
+some genetic heritability behind the measured trait, some number of genetic
+variants will be associated with the outcome at genome-wide significance.
+Most prominent GWAS take this set of _discovery_ variants and attempt to
+assess them in a _replication_ study: a set of independent subjects
+for whom the same genetic and phenotypic information has been collected.
+
+The question becomes: how often should a discovery variant successfully replicate?
+In practice, many discovery variants fail to replicate, even when using very
+stringent multiple testing correction in discovery. One of the reasons for this
+failure to replicate is the Winner's Curse, or regression toward the mean.
+Variants are effectively competing to be brought forward into replication,
+and the competition is won by any variant that happens to exceed genome-wide significance.
+
+## Observing the Winner's Curse in Genetic Association
+
+We can pretty easily simulate the Winner's Curse in a toy example.
+Imagine a situation in which we test association between many variants in turn
+and an outcome. For simplicity, assume none of the variants are associated
+with the outcome in truth. The question becomes simply: if we use a p-value
+threshold to select variants to attempt to replicate in such a study,
+what happens to our estimation of the true association based on our discovery data?
+
+```{r simulate.discovery, echo=TRUE, eval=TRUE}
+n.variants <- 20000
+n.subjects <- 1000
+## assume for simplicity that all variants have the
+## same allele frequency, and are biallelic
+allele.frequency <- 0.25
+## assume Hardy-Weinberg equilibrium
+p.homozygous.reference <- allele.frequency^2
+p.heterozygous <- 2 * allele.frequency * (1 - allele.frequency)
+p.homozygous.alternate <- (1 - allele.frequency)^2
+probs <- c(
+  p.homozygous.reference,
+  p.heterozygous,
+  p.homozygous.alternate
+)
+## simulate some variants
+genetic.data <- sample(as.integer(0:2), n.variants * n.subjects, replace = TRUE, prob = probs)
+## simulate a fixed outcome
+phenotypic.data <- rnorm(n.subjects)
+## test association between variant and phenotype
+estimated.effect <- c()
+estimated.p <- c()
+for (i in seq_len(n.variants)) {
+  genotypes <- genetic.data[seq((i - 1) * n.subjects + 1, i * n.subjects)]
+  model.fit <- summary(lm(phenotypic.data ~ genotypes))
+  estimated.effect <- c(estimated.effect, model.fit$coeff[2, 1])
+  estimated.p <- c(estimated.p, model.fit$coeff[2, 4])
+}
+## now, consider varying levels of stringency in
+## declaring a variant "discovered"
+p.thresholds <- c(
+  1, 0.75, 0.5, 0.25, 0.1,
+  0.075, 0.05, 0.025, 0.01,
+  0.0075, 0.005, 0.0025, 0.001,
+  0.00075, 0.0005
+)
+discovery.average.effect <- c()
+for (p.threshold in p.thresholds) {
+  discovery.effects <- estimated.effect[estimated.p <= p.threshold]
+  discovery.positive.effects <- discovery.effects[discovery.effects >= 0]
+  discovery.negative.effects <- discovery.effects[discovery.effects < 0]
+  discovery.average.effect <- c(
+    discovery.average.effect,
+    ifelse(length(discovery.positive.effects) == 0,
+      NA,
+      mean(discovery.positive.effects)
+    )
+  )
+  discovery.average.effect <- c(
+    discovery.average.effect,
+    ifelse(length(discovery.negative.effects) == 0,
+      NA,
+      mean(discovery.negative.effects)
+    )
+  )
+}
+```
+
+As expected, the resulting effect estimates across _all variants_ are normally distributed about 0:
+
+```{r plot.histogram, echo=FALSE, eval=TRUE, fig.height=5, fig.width=5, units="in", fig.align="center"}
+plot.data <- data.frame(x = estimated.effect)
+my.plot <- ggplot(aes(x = x, y = ..count.. / sum(..count..)), data = plot.data) +
+  geom_histogram(bins = 100)
+my.plot <- my.plot + my.theme + xlab("variant effect estimate") + ylab("proportion of variants")
+my.plot <- my.plot + ggtitle("Effect Sizes for Unassociated Variants")
+my.plot
+```
+
+However, what happens when we only consider variants that surpass some more stringent p-value threshold?
+It is a somewhat complicated question. However, we're in linear regression, so one thing is easier:
+with linear regression and assuming [Hardy Weinberg equilibrium](https://en.wikipedia.org/wiki/Hardy%E2%80%93Weinberg_principle),
+the standard error of a regression coefficient is actually known to be $$\frac{1}{\sqrt{2 * N * f * (1 - f)}}$$ where $N$
+is the sample size and $f$ is the biallelic allele frequency. Why point this out? Because the standard error is not actually
+dependent on the regression coefficient at all. This somewhat unintuitive observation means that the question
+_what happens to variants with more extreme p-values?_ becomes _what happens to variants with more extreme regression coefficients?_
+(bearing in mind that bigger coefficients mean bigger test statistics mean smaller p-values).
+
+In the next plot, we'll consider the average effect of variants stratified by whether the sign of their apparent correlation
+with the outcome is positive or negative. This is just to make the trends apparent, so things don't noisily cancel each other out.
+
+```{r plot.discovery.effect, echo=FALSE, eval=TRUE, fig.height=5, fig.width=5, units="in", fig.align="center"}
+plot.data <- data.frame(x = rep(-log10(p.thresholds), each = 2), y = discovery.average.effect)
+my.plot <- ggplot(aes(x = x, y = y), data = plot.data)
+my.plot <- my.plot + my.theme + geom_point()
+my.plot <- my.plot + xlab(expression("-log"[10] * "(p-value threshold)")) + ylab("mean effect in passing variants")
+my.plot <- my.plot + ggtitle("Escalating Curse in Unassociated Variants")
+my.plot <- my.plot + geom_hline(yintercept = 0)
+my.plot
+```
+
+Observe the following about the above plot:
+
+- Recall that every single variant in the simulation is uncorrelated with the outcome
+- The mean effect of variants passing the least stringent threshold is the least biased (nonzero)
+- The apparent curse increases as the p-value threshold for "discovery" increases
+- The _overall_ mean is still noisily symmetric about 0, but the individual estimates become more extreme
+
