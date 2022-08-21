@@ -1,0 +1,19 @@
+---
+title: "assess-replication-in-study"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{assess-replication-in-study}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(gwas.winners.curse)
+```
