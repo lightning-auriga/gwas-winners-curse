@@ -38,7 +38,7 @@ poisson.binom.test <- function(x, p = 0.5, alternative = c("two.sided", "less", 
     greater = PoissonBinomial::ppbinom(x - 1, p, lower.tail = FALSE),
     two.sided = {
       rel.err <- 1 + 1e-07
-      d <- dpbinom(x, p)
+      d <- PoissonBinomial::dpbinom(x, p)
       m <- sum(p)
       if (x == m) {
         1
