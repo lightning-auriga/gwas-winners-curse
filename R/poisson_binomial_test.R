@@ -28,32 +28,30 @@
 #' n <- 30
 #' p <- seq(0, 1, length.out = 10)
 #' poisson.binom.test(x, n, p, "greater")
-poisson.binom.test <- function(x, n, p = 0.5, alternative = c("two.sided", "less", "greater")) {
+poisson.binom.test <- function(x, p = 0.5, alternative = c("two.sided", "less", "greater")) {
   stopifnot(length(x) == 1)
   stopifnot(is.numeric(x) || is.integer(x))
-  stopifnot(length(n) == 1)
-  stopifnot(is.numeric(n) || is.integer(n))
-  stopifnot(x <= n, x >= 0)
+  stopifnot(x >= 0)
   alternative <- match.arg(alternative)
   p.value <- switch(alternative,
-    less = PoissonBinomial::ppbinom(x, n, p),
-    greater = PoissonBinomial::ppbinom(x - 1, n, p, lower.tail = FALSE),
+    less = PoissonBinomial::ppbinom(x, p),
+    greater = PoissonBinomial::ppbinom(x - 1, p, lower.tail = FALSE),
     two.sided = {
       rel.err <- 1 + 1e-07
-      d <- dpbinom(x, n, p)
-      m <- n * p
+      d <- dpbinom(x, p)
+      m <- sum(p)
       if (x == m) {
         1
       } else if (x < m) {
-        i <- seq.int(from = ceiling(m), to = n)
-        y <- sum(PoissonBinomial::dpbinom(i, n, p) <= d * rel.err)
-        PoissonBinomial::ppbinom(x, n, p) +
-          PoissonBinomial::ppbinom(n - y, n, p, lower.tail = FALSE)
+        i <- seq.int(from = ceiling(m), to = length(p))
+        y <- sum(PoissonBinomial::dpbinom(i, p) <= d * rel.err)
+        PoissonBinomial::ppbinom(x, p) +
+          PoissonBinomial::ppbinom(length(p) - y, p, lower.tail = FALSE)
       } else {
         i <- seq.int(from = 0, to = floor(m))
-        y <- sum(PoissonBinomial::dbinom(i, n, p) <= d * rel.err)
-        PoissonBinomial::ppbinom(y - 1, n, p) +
-          PoissonBinomial::ppbinom(x - 1, n, p, lower.tail = FALSE)
+        y <- sum(PoissonBinomial::dpbinom(i, p) <= d * rel.err)
+        PoissonBinomial::ppbinom(y - 1, p) +
+          PoissonBinomial::ppbinom(x - 1, p, lower.tail = FALSE)
       }
     }
   )

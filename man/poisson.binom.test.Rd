@@ -6,22 +6,17 @@
 about the probability of success in a Poisson binomial
 series.}
 \usage{
-poisson.binom.test(
-  x,
-  n,
-  p = 0.5,
-  alternative = c("two.sided", "less", "greater")
-)
+poisson.binom.test(x, p = 0.5, alternative = c("two.sided", "less", "greater"))
 }
 \arguments{
 \item{x}{Numeric number of success counts.}
-
-\item{n}{Numeric number of trials.}
 
 \item{p}{Numeric sequence of probabilities for each trial in turn.}
 
 \item{alternative}{Character, one of "two.sided", "less", or "greater."
 Analogous to the same parameter in binom.test.}
+
+\item{n}{Numeric number of trials.}
 }
 \value{
 Numeric probability of the alternative hypothesis
