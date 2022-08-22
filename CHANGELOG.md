@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - R package structure
 - roxygen documentation
 - unit tests with [testthat](https://testthat.r-lib.org/)
+- basic power calculation, variance explained, expected replication
+- Poisson binomial test, for assessing replication power distribution
 
 ### Changed
 

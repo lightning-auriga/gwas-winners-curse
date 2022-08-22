@@ -44,13 +44,15 @@ also suggest some really great papers on the topic.
   variant summary information from those papers is available in the supplement of the original manuscript, and is also now stored in 
   `tests/testthat/testthat_files/correct_winners_curse` for posterity.
 
-### Usage
+### Usage: Winner's Curse Correction
 
-I recommend installing the package with `devtools::install_github()`:
+I recommend installing the package with `remotes::install_github()`:
 
 ```r
-library(devtools)
-devtools::install_github("cpalmer718/gwas-winners-curse", ref = "default")
+## if needed:
+## install.packages("remotes")
+library(remotes)
+remotes::install_github("cpalmer718/gwas-winners-curse", ref = "default")
 library(gwas.winners.curse)
 ```
 
@@ -104,6 +106,54 @@ A few things to note for anyone comparing this information to runs with the old 
   addition that didn't ever seem to work very well originally, and so it was actually disabled
   and just copied the MLE version. that behavior is reset to the correct behavior in the R package;
   my apologies for any confusion.
+
+### Usage: Assessing Replication
+
+The package supports some (for the moment barebones) utilities for assessing replication of a set
+of signals in a particular study.
+
+In brief, the expected and observed replication in a two phase GWAS may be assessed as follows:
+
+- Compute the curse-corrected regression coefficients from discovery, e.g. with `gwas.winners.curse::correct.winners.curse`
+- With the **replication sample size and allele frequency**, compute the power to replicate the variant
+  with `gwas.winners.curse::compute.power(beta, allele.frequency, n, p.threshold)`
+- Decide what threshold for replication you are going to use for your replication p-value
+  - this is a relatively controversial choice that somewhat exceeds the scope of this document. the easiest choice
+    is Bonferroni correction for the number of replications attempted (0.05/m).
+- Sum the power across all attempted variants. This is the _expected_ number of replicated variants.
+  - alternatively, compute the power and sum them all at once with the utility function `gwas.winners.curse::expected.replication.count`
+- Compute the observed number of replications based on your _a priori_ replication p-value threshold
+
+The immediate question is: statistically, do the expected and observed numbers differ from one another?
+One way to assess this question is with the [Poisson binomial distribution](https://en.wikipedia.org/wiki/Poisson_binomial_distribution):
+treat each replication attempt as a biased Bernoulli trial with P(success) the power to replicate. Then query
+the probability of observing the actual number of replications given the power. This comparison is basically
+a generalization of the standard R function `stats::binom.test`. It's not implemented by default anywhere, so
+there's a utility function for that too:
+
+```r
+p.threshold <- 5-e4
+replication.p <- runif(100)
+power.to.replicate <- runif(100)
+n.replications <- length(which(replication.p <= p.threshold))
+```
+The standard binomial test takes:
+  - a number of successes 
+  - a number of trials
+  - a probability of success (which is fixed for the standard binomial)
+  - an alternative hypothesis: is the true hidden rate of success greater than expected, or less, or either?
+
+For the Poisson binomial, the number of trials is not explicitly provided, and the probability of
+success is specified as a vector, one per trial. The rest of the logic is the same.
+
+```r
+## Is the conceptual hidden true power to replicate equivalent to what was modeled, where the alternative
+## is that the true power is smaller?
+p.less <- gwas.winners.curse::poisson.binom.test(n.replications, power.to.replicate, alt = "less")
+```
+
+You can test the other hypotheses as well, though generally your power won't be greater than expected,
+unless you have substantial test statistic inflation.
 
 ## Version History
 See [changelog](CHANGELOG.md) for more information.
