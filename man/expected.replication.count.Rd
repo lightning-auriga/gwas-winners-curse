@@ -59,6 +59,13 @@ less possible over time to get systematic replication assessments in the field,
 and interested investigators should conduct these calculations within their own
 datasets where they have access to improved information.
 }
+\examples{
+beta <- c(0.1, 0.2)
+f <- c(0.22, 0.12)
+n <- c(10000, 5000)
+p.thresh <- c(1e-5, 1e-6)
+expected.replication.count(beta, f, n, p.thresh)
+}
 \seealso{
 compute.power, compute.variance.explained
 }

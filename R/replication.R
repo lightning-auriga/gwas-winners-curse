@@ -24,7 +24,7 @@
 #' beta <- 0.05
 #' varexp <- compute.variance.explained(beta, freq)
 compute.variance.explained <- function(beta, freq) {
-  2 * beta^2 * f * (1 - f)
+  2 * beta^2 * freq * (1 - freq)
 }
 
 #' @title
@@ -123,6 +123,12 @@ compute.power <- function(beta, freq, sample.size, p.threshold) {
 #' that are expected to replicate, given the provided study parameters.
 #' @export
 #' @seealso compute.power, compute.variance.explained
+#' @examples
+#' beta <- c(0.1, 0.2)
+#' f <- c(0.22, 0.12)
+#' n <- c(10000, 5000)
+#' p.thresh <- c(1e-5, 1e-6)
+#' expected.replication.count(beta, f, n, p.thresh)
 expected.replication.count <- function(variant.effect,
                                        study.frequency,
                                        study.sample.size,
