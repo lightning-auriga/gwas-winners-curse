@@ -165,3 +165,8 @@ See the current [issues](https://github.com/lightning-auriga/gwas-winners-curse/
     - Commit code with `git cz`; make sure to cite the issue number you're working on
     - Push your changes to the remote repository with `git push origin <feature_branch>`
 - When you're all done, submit a pull request [here](https://github.com/lightning-auriga/gwas-winners-curse/pulls).  Other developers will review your code, make comments, and merge in your changes when ready!
+
+
+### Note
+
+This work was originally performed and published under the name "Cameron Palmer."
